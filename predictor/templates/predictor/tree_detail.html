@@ -1,0 +1,123 @@
+{% extends 'predictor/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+  <div>
+    <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider mb-2">Full Model Topology</span>
+    <h2 class="fw-bold text-dark mb-1">{{ model_label }} Decision Tree</h2>
+    {% if highlighted %}
+      <p class="text-muted small mb-0">
+        The <span class="fw-bold" style="color:#0d6efd;">blue-highlighted</span> path is
+        auto-expanded and shows exactly which branches your most recent patient submission took.
+        Click any other row to expand it and explore the rest of the tree.
+      </p>
+    {% else %}
+      <p class="text-muted small mb-0">
+        Click any row to expand it. Run a prediction first to see a specific patient's path
+        auto-expanded and highlighted in blue.
+      </p>
+    {% endif %}
+  </div>
+  <a href="{% url 'result' %}" class="btn btn-outline-dark btn-sm px-3 fw-bold">&larr; Back to Result</a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+  <div class="d-flex justify-content-end gap-2 mb-3">
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('#tree-outline-wrap details').forEach(d => d.open = true);">Expand All</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('#tree-outline-wrap details').forEach(d => d.open = false);">Collapse All</button>
+  </div>
+  <div id="tree-outline-wrap">
+    {{ tree_html|safe }}
+  </div>
+</div>
+
+<style>
+  /* Indented, collapsible decision tree -- grows vertically only, so there's
+     no horizontal scrolling regardless of how deep the tree gets. Each split
+     is a native <details>/<summary>, so it's expandable with no JS required
+     (the Expand/Collapse All buttons above are just a convenience). */
+  .tree-outline {
+    font-size: 0.85rem;
+  }
+  .outline-root {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    border: 2px solid #94a3b8;
+    border-radius: 8px;
+    background: #f8fafc;
+  }
+
+  .tree-outline details {
+    margin: 0.15rem 0;
+  }
+  .tree-outline summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+  .tree-outline summary::-webkit-details-marker { display: none; }
+  .tree-outline summary::before {
+    content: "\25B8";
+    display: inline-block;
+    margin-right: 0.4rem;
+    color: #94a3b8;
+    transition: transform 0.15s ease;
+  }
+  .tree-outline details[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  .tree-outline summary:hover { background: #f1f5f9; }
+
+  .outline-children {
+    list-style: none;
+    margin: 0.35rem 0 0.35rem 1.4rem;
+    padding-left: 1rem;
+    border-left: 2px dashed #cbd5e1;
+  }
+  .outline-children li {
+    margin: 0.5rem 0;
+  }
+
+  .outline-feature, .outline-root .outline-feature {
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .outline-active { color: #0d6efd; }
+  .outline-threshold {
+    margin-left: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .outline-branch-label {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #8b0000;
+    margin-right: 0.5rem;
+  }
+  .outline-branch-active-label { color: #0d6efd; }
+
+  /* highlight the auto-expanded path's boxes */
+  li.outline-branch-active > details > summary { border-color: #0d6efd; background: #eaf2ff; }
+
+  .diagram-box.diagram-leaf {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .diagram-leaf-active {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.5);
+  }
+</style>
+{% endblock %}

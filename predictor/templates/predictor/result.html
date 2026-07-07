@@ -1,0 +1,150 @@
+{% extends 'predictor/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+
+    {% if result.patient_name or result.patient_id %}
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 px-1">
+      <div>
+        <span class="text-muted small text-uppercase fw-bold" style="letter-spacing:0.05em; font-size:0.7rem;">Patient</span>
+        <div class="fw-bold text-dark">{{ result.patient_name }}</div>
+      </div>
+      <div class="text-end">
+        <span class="text-muted small text-uppercase fw-bold" style="letter-spacing:0.05em; font-size:0.7rem;">Patient ID (MRN)</span>
+        <div class="fw-bold font-monospace"><code class="text-dark">{{ result.patient_id }}</code></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden bg-white">
+      <div class="p-4 text-center {% if result.verdict == 1 %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
+        <span class="text-uppercase small fw-bold tracking-wider opacity-75 d-block mb-1">
+          {% if result.rf_pred is not None %}
+            {% if result.unanimous %}Unanimous &middot; 3 / 3 Models Agree{% else %}Majority Vote &middot; 2 / 3 Models Agree{% endif %}
+          {% else %}
+            {% if result.agree %}Both Models Agree{% else %}Majority Verdict (tie-break)*{% endif %}
+          {% endif %}
+        </span>
+        <h2 class="fw-bold m-0">
+          {% if result.verdict == 1 %}CRITICAL RISK DETECTED{% else %}CARDIOVASCULAR BASELINE NORMAL{% endif %}
+        </h2>
+      </div>
+      {% if result.rf_pred is not None and not result.unanimous %}
+      <div class="px-4 pb-3 pt-2 text-center small text-muted bg-white">
+        Two of the three models (ID3, C4.5, Random Forest) agreed on this verdict. See the individual model results and decision paths below for the full picture.
+      </div>
+      {% endif %}
+    </div>
+    {% if result.rf_pred is None %}
+    <p class="text-muted small px-1">* No trained Random Forest model was available for this run, so the verdict falls back to C4.5 when ID3 and C4.5 disagree.</p>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white">
+          <small class="text-muted fw-bold text-uppercase font-monospace d-block mb-1" style="font-size:0.65rem;">ID3 Model Says:</small>
+          <div class="fw-bold fs-5 {% if result.id3_pred == 1 %}text-danger{% else %}text-success{% endif %}">
+            {% if result.id3_pred == 1 %}Disease Risk{% else %}Normal Clear{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white">
+          <small class="text-muted fw-bold text-uppercase font-monospace d-block mb-1" style="font-size:0.65rem;">C4.5 Model Says:</small>
+          <div class="fw-bold fs-5 {% if result.c45_pred == 1 %}text-danger{% else %}text-success{% endif %}">
+            {% if result.c45_pred == 1 %}Disease Risk{% else %}Normal Clear{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white">
+          <small class="text-muted fw-bold text-uppercase font-monospace d-block mb-1" style="font-size:0.65rem;">Random Forest Says:</small>
+          {% if result.rf_pred is None %}
+            <div class="fw-bold fs-6 text-muted">No trained RF model yet</div>
+          {% else %}
+            <div class="fw-bold fs-5 {% if result.rf_pred == 1 %}text-danger{% else %}text-success{% endif %}">
+              {% if result.rf_pred == 1 %}Disease Risk{% else %}Normal Clear{% endif %}
+            </div>
+            <small class="text-muted">{{ result.rf_confidence }}% confidence</small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4 border-start border-warning border-4">
+      <h5 class="fw-bold text-dark mb-1">Notable Clinical Value</h5>
+      
+      <div class="p-3 bg-warning-subtle text-warning-dominant rounded-3 fw-bold font-monospace small">
+         {{ result.most_abnormal }}
+      </div>
+    </div>
+
+    {% if result.id3_path or result.c45_path %}
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+      <h5 class="fw-bold text-dark mb-1">Decision Path Tracing (Local Explainability)</h5>
+      <p class="text-muted small mb-4">The exact sequence of rule conditions each model followed for this patient. Open "View Full Decision Tree" to see that same path traced from the root inside the model's complete tree, on its own page.</p>
+
+      <div class="row g-3">
+        {% if result.id3_path %}
+        <div class="col-md-6">
+          <div class="p-3 rounded-3" style="background:#0f172a;">
+            <span class="text-uppercase small fw-bold d-block mb-2" style="letter-spacing:0.05em; font-size:0.7rem; color:#94a3b8;">
+              ID3 path &middot; {{ result.id3_path|length }} step{{ result.id3_path|length|pluralize }}
+            </span>
+            {% for step in result.id3_path %}
+              <div class="font-monospace small py-1" style="color:#52ff9e;">&rarr; {{ step }}</div>
+            {% endfor %}
+          </div>
+
+          {% if result.id3_tree_html %}
+          <a href="{% url 'tree_detail' 'id3' %}" target="_blank" rel="noopener"
+             class="tree-toggle w-100 d-flex justify-content-between align-items-center p-2 mt-2 rounded-3 border-0 text-decoration-none">
+            <span class="small fw-bold text-uppercase" style="letter-spacing:0.05em; font-size:0.7rem;">View Full Decision Tree</span>
+            <span class="small">&#8599;</span>
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if result.c45_path %}
+        <div class="col-md-6">
+          <div class="p-3 rounded-3" style="background:#0f172a;">
+            <span class="text-uppercase small fw-bold d-block mb-2" style="letter-spacing:0.05em; font-size:0.7rem; color:#94a3b8;">
+              C4.5 path &middot; {{ result.c45_path|length }} step{{ result.c45_path|length|pluralize }}
+            </span>
+            {% for step in result.c45_path %}
+              <div class="font-monospace small py-1" style="color:#52ff9e;">&rarr; {{ step }}</div>
+            {% endfor %}
+          </div>
+
+          {% if result.c45_tree_html %}
+          <a href="{% url 'tree_detail' 'c45' %}" target="_blank" rel="noopener"
+             class="tree-toggle w-100 d-flex justify-content-between align-items-center p-2 mt-2 rounded-3 border-0 text-decoration-none">
+            <span class="small fw-bold text-uppercase" style="letter-spacing:0.05em; font-size:0.7rem;">View Full Decision Tree</span>
+            <span class="small">&#8599;</span>
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="text-start mt-4">
+      <a href="{% url 'predict' %}" class="btn btn-dark px-4 py-2 fw-bold text-uppercase rounded-3 shadow-sm btn-sm" style="font-size:0.8rem; letter-spacing: 0.5px;">
+        &larr; Back to Intake screening
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .text-warning-dominant { color: #856404; }
+
+  .tree-toggle {
+    background: #0f172a; color: #e2e8f0;
+    transition: background 0.15s ease; cursor: pointer;
+  }
+  .tree-toggle:hover { background: #1e293b; color: #ffffff; }
+</style>
+{% endblock %}

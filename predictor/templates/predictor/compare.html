@@ -1,0 +1,196 @@
+{% extends 'predictor/base.html' %}
+{% block content %}
+
+<div class="mb-4">
+  <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider mb-2">Systems Audit</span>
+  <h2 class="fw-bold text-dark mb-1">Model Evaluation &amp; Validation Dashboard</h2>
+  <p class="text-muted small">Comparative metrics across all three models: ID3, C4.5, and the Random Forest voter.</p>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-danger border-3">
+      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independently Implemented Paradigm A</small>
+      <h4 class="fw-bold text-dark mb-2">ID3 Core Layout</h4>
+      <p class="text-secondary small mb-3">A discrete-attribute branching model that splits nodes entirely based on minimizing absolute Entropy.</p>
+      <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
+        Categorical Splits Only
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-primary border-3">
+      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independently Implemented Paradigm B</small>
+      <h4 class="fw-bold text-dark mb-2">C4.5 Optimization</h4>
+      <p class="text-secondary small mb-3">Handles continuous vitals (like blood pressure) by dynamically finding mathematical threshold points using Gain Ratio.</p>
+      <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
+        Continuous Thresholding
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-3" style="border-top-color:#198754 !important;">
+      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Reference Ensemble (scikit-learn)</small>
+      <h4 class="fw-bold text-dark mb-2">Random Forest Vote</h4>
+      <p class="text-secondary small mb-3">Not implemented independently, a bagged ensemble of decision trees used as a third, independent vote alongside ID3/C4.5.</p>
+      <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
+        Third Independent Vote
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if agreement_stats %}
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4" style="border-left: 4px solid #ffc107;">
+  <h5 class="fw-bold text-dark mb-1">Model Agreement Rates</h5>
+  <p class="text-muted small mb-2">On the {{ agreement_stats.test_set_size }}-record held-out test set:</p>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="fw-bold" style="font-size: 1.5rem; color:#b8860b;">{{ agreement_stats.agreement_rate }}%</div>
+      <div class="small text-muted">ID3 &harr; C4.5 pairwise agreement</div>
+    </div>
+    <div class="col-md-6">
+      <div class="fw-bold" style="font-size: 1.5rem; color:#198754;">{{ agreement_stats.unanimous_rate }}%</div>
+      <div class="small text-muted">ID3 &harr; C4.5 &harr; RF unanimous (all three agree)</div>
+    </div>
+  </div>
+</div>
+{% endif %} 
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h5 class="fw-bold text-dark mb-1">Metric Comparison</h5>
+      <p class="text-muted small mb-0">Same four metrics, plotted side by side &mdash; wherever one line sits above the others, that model leads on that metric.</p>
+      {% if metrics_are_live %}
+        <span class="badge bg-success-subtle text-success mt-2">Live &middot; from last training run</span>
+      {% else %}
+        <span class="badge bg-secondary-subtle text-secondary mt-2">Placeholder &middot; run train.py to see live numbers</span>
+      {% endif %}
+    </div>
+    <div class="d-flex gap-3 flex-wrap" id="chart-legend"></div>
+  </div>
+  <div style="max-width: 750px; margin: 0 auto;">
+    <canvas id="metricsChart"></canvas>
+  </div>
+</div> 
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+  <h5 class="fw-bold text-dark mb-1">Exact Figures</h5>
+  <p class="text-muted small mb-3">Calculated on a held-out 20% test split.</p>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr id="metrics-table-header" class="small text-uppercase text-muted" style="letter-spacing:0.04em; font-size:0.7rem;">
+          <th>Metric</th>
+        </tr>
+      </thead>
+      <tbody id="metrics-table-body"></tbody>
+    </table>
+  </div>
+</div>
+<style>
+  .tracking-wider { letter-spacing: 0.05em; }
+  .style-glimpse-box {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    background-color: #f8f9fa !important;
+    border: 1px dashed #dee2e6;
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{{ chart_data|json_script:"chart-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  
+  const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+  const palette = ["#8b0000", "#0d6efd", "#198754", "#b8860b"];
+ 
+  const legendEl = document.getElementById('chart-legend');
+  chartData.datasets.forEach((ds, i) => {
+    const span = document.createElement('span');
+    span.className = "d-flex align-items-center gap-2 small fw-semibold text-dark";
+    span.innerHTML = `<span class="legend-dot" style="background:${palette[i % palette.length]};"></span>${ds.label}`;
+    legendEl.appendChild(span);
+  });
+ 
+  new Chart(document.getElementById('metricsChart'), {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: chartData.datasets.map((ds, i) => {
+        const color = palette[i % palette.length];
+        return {
+          label: ds.label,
+          data: ds.values,
+          borderColor: color,
+          backgroundColor: color,
+          pointBackgroundColor: color,
+          pointBorderColor: '#fff',
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          borderWidth: 3,
+          tension: 0.25,
+          fill: false,
+        };
+      }),
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          min: 0, max: 100,
+          ticks: { callback: (v) => v + '%' },
+          grid: { color: '#e2e8f0' },
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 12, weight: '600' }, color: '#334155' },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%` } },
+      },
+    },
+  }); 
+  const headerRow = document.getElementById('metrics-table-header');
+  chartData.datasets.forEach(ds => {
+    const th = document.createElement('th');
+    th.className = "text-end";
+    th.style.minWidth = "110px"; 
+    th.textContent = ds.label;
+    headerRow.appendChild(th);
+  });
+  
+  const tbody = document.getElementById('metrics-table-body');
+  chartData.labels.forEach((label, i) => {
+    const row = document.createElement('tr');
+ 
+    let rowContent = `<td class="fw-semibold text-dark">${label}</td>`;
+ 
+    const values = chartData.datasets.map(ds => ds.values[i]);
+    const best = Math.max(...values);
+    
+    chartData.datasets.forEach(ds => {
+      const v = ds.values[i];
+      const isBest = Math.abs(v - best) < 0.005;
+      const highlightClass = isBest ? 'fw-bold text-success' : 'text-secondary';
+      
+      rowContent += `
+        <td class="text-end font-monospace ${highlightClass}">
+          ${v.toFixed(2)}%
+        </td>`;
+    });
+    
+    row.innerHTML = rowContent;
+    tbody.appendChild(row);
+  });
+</script>
+{% endblock %}

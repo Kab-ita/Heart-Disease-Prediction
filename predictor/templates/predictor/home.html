@@ -1,0 +1,190 @@
+{% extends 'predictor/base.html' %}
+{% block content %}
+<div class="text-center mb-5 py-5 rounded-4 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+  <div class="mb-2">
+    <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold tracking-wide shadow-sm" style="font-size: 0.8rem; letter-spacing: 1px;">Clinical Decision Support System</span>
+  </div>
+  <h1 class="display-5 fw-bold text-uppercase tracking-tight mb-2">Heart Disease Inference Platform</h1>
+  <p class="lead opacity-75 mx-auto max-w-2xl fw-normal fs-5">
+    Three implemented models ID3, C4.5, and a Random Forest voter
+  <br>
+    Best of 3  majority vote for transparent cardiovascular risk profiling.</p>
+  <div class="mt-4 pt-2">
+    <a href="{% url 'predict' %}" class="btn btn-danger btn-lg px-5 fw-bold shadow-sm me-3 border-0 hover-scale" style="background-color: #ef4444;">
+       Launch Diagnostic Sweep
+    </a>
+    <a href="#system-workflow" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+      Learn How It Works
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 justify-content-center mb-5">
+  <div class="col-md-3">
+    <div class="card text-center p-4 border-0 shadow-sm rounded-3 bg-white">
+      <div class="fw-bold" style="font-size: 2rem;">{{ total }}</div>
+      <div class="text-uppercase small text-muted" style="letter-spacing: 0.05em;">Total Predictions</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-4 border-0 shadow-sm rounded-3 bg-white" style="border-left: 4px solid #dc3545 !important;">
+      <div class="fw-bold text-danger" style="font-size: 2rem;">{{ disease }}</div>
+      <div class="text-uppercase small text-muted" style="letter-spacing: 0.05em;">Flagged Disease Risk</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-4 border-0 shadow-sm rounded-3 bg-white" style="border-left: 4px solid #198754 !important;">
+      <div class="fw-bold text-success" style="font-size: 2rem;">{{ no_disease }}</div>
+      <div class="text-uppercase small text-muted" style="letter-spacing: 0.05em;">Normal Profiles</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-4 border-0 shadow-sm rounded-3 bg-white" style="border-left: 4px solid #ffc107 !important;">
+      <div class="fw-bold" style="font-size: 2rem; color:#b8860b;">{{ disagreements }}</div>
+      <div class="text-uppercase small text-muted" style="letter-spacing: 0.05em;">Model Disagreements</div>
+    </div>
+  </div>
+</div>
+
+<div id="system-workflow" class="row g-4 mb-5">
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="fw-bold text-dark m-0">1. ID3 Logic</h5>
+      </div>
+      <p class="text-secondary small lh-base mb-0">
+        Constructed independently, the ID3 engine partitions information by computing continuous features into high-gain categorical breaks using greedy structural entropy reductions.
+      </p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="fw-bold text-dark m-0">2. C4.5 Logic</h5>
+      </div>
+      <p class="text-secondary small lh-base mb-0">
+        Improves on raw entropy by applying Gain Ratio penalties to clear attribute splitting biases, compiling descriptive rule-based execution footprints and tracing individual prediction tracks.
+      </p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+      <div class="d-flex align-items-center mb-3">
+        <h5 class="fw-bold text-dark m-0">3. Random Forest Voter</h5>
+      </div>
+      <p class="text-secondary small lh-base mb-0">
+        A scikit-learn ensemble used purely as a third, independent vote. When all three agree, that's the strongest signal.        </p>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5">
+  <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+    <div>
+      <h4 class="fw-bold text-dark mb-1">Diagnostic Attribute Reference Guide</h4>
+      <p class="text-muted small mb-0">Understand the foundational indicators used by the tree nodes to split data boundaries.</p>
+    </div>
+    <span class="badge bg-dark px-3 py-2 text-uppercase">UCI Schema Protocol</span>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">Chest Pain Type (<small class="font-monospace text-danger">ChestPainType</small>)</h6>
+          <p class="text-muted small mb-0">Categorized as Typical Angina (TA), Atypical Angina (ATA), Non-Anginal Pain (NAP), or Asymptomatic (ASY). ASY nodes frequently highlight structural ischemic conditions.</p>
+        </li>
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">Resting Blood Pressure (<small class="font-monospace text-danger">RestingBP</small>)</h6>
+          <p class="text-muted small mb-0">Patient's resting cardiovascular pressure in mm Hg. Elevated levels (&gt;=140 mm Hg) steer classification pathways toward multi-system hypertensive load limits.</p>
+        </li>
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">Serum Cholesterol (<small class="font-monospace text-danger">Cholesterol</small>)</h6>
+          <p class="text-muted small mb-0">Total blood lipid counts tracked in mg/dl. High cholesterol levels represent key nodes for mapping atherosclerotic plaque risks.</p>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">ST Depression (<small class="font-monospace text-danger">Oldpeak</small>)</h6>
+          <p class="text-muted small mb-0">Tracks depression stress values measured relative to rest levels. Higher numerical shifts indicate distinct sub-endocardial injury vectors.</p>
+        </li>
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">Peak ST/T Slope (<small class="font-monospace text-danger">ST_Slope</small>)</h6>
+          <p class="text-muted small mb-0">The geometric slope of the stress ECG segment (Up, Flat, or Down). Flat or downwards sloping segments serve as strong terminal node triggers for structural disease classification.</p>
+        </li>
+        <li class="list-group-item px-0 py-3 bg-transparent border-bottom">
+          <h6 class="fw-bold text-dark mb-1">Max Heart Rate (<small class="font-monospace text-danger">MaxHR</small>)</h6>
+          <p class="text-muted small mb-0">Peak beats achieved during stress examinations. Reduced limits correlate mathematically with diminished cardiovascular cardiac reserve output capacity.</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% if recent %}
+<div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+  <div class="border-bottom pb-3 mb-3">
+    <h5 class="fw-bold text-dark mb-1">Real-Time Pipeline Log Updates</h5>
+    <p class="text-muted small mb-0">The five most recent prediction runs.</p>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr class="small text-muted text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+          <th>Record</th>
+          <th>Patient ID</th>
+          <th>Timestamp</th>
+          <th>Age / Sex</th>
+          <th class="text-center">ID3</th>
+          <th class="text-center">C4.5</th>
+          <th class="text-center">RF</th>
+          <th class="text-center">Agreement</th>
+          <th class="text-center">Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent %}
+        <tr style="font-size: 0.9rem;">
+          <td><code>#{{ r.id }}</code></td>
+          <td><code class="text-dark fw-bold">{{ r.patient_id }}</code></td>
+          <td class="text-muted small">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+          <td class="text-secondary">{{ r.age }}Y ({{ r.sex }})</td>
+          <td class="text-center">{% if r.id3_result == 1 %}<span class="badge bg-danger-subtle text-danger rounded-pill px-2">Disease</span>{% else %}<span class="badge bg-success-subtle text-success rounded-pill px-2">Normal</span>{% endif %}</td>
+          <td class="text-center">{% if r.c45_result == 1 %}<span class="badge bg-danger-subtle text-danger rounded-pill px-2">Disease</span>{% else %}<span class="badge bg-success-subtle text-success rounded-pill px-2">Normal</span>{% endif %}</td>
+          <td class="text-center">
+            {% if r.rf_result is None %}
+              <span class="text-muted small">&mdash;</span>
+            {% elif r.rf_result == 1 %}
+              <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Disease</span>
+            {% else %}
+              <span class="badge bg-success-subtle text-success rounded-pill px-2">Normal</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <span class="badge {{ r.agreement_badge_class }} rounded-pill px-2">{{ r.agreement_label }}</span>
+          </td>
+          <td class="text-center">
+            {% if r.verdict == 1 %}
+              <span class="badge bg-danger px-3 py-1 rounded-pill fw-bold shadow-sm" style="font-size: 0.8rem;">Positive</span>
+            {% else %}
+              <span class="badge bg-success px-3 py-1 rounded-pill fw-bold shadow-sm" style="font-size: 0.8rem;">Negative</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<style>
+  .hover-scale { transition: transform 0.2s ease; }
+  .hover-scale:hover { transform: translateY(-2px); }
+  .bg-danger-subtle { background-color: #ffeeef; color: #dc3545; }
+  .bg-success-subtle { background-color: #eefdf5; color: #198754; }
+</style>
+
+{% endblock %}

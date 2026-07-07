@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heart Disease Prediction - White-Box XAI Hub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .navbar-custom {
+      background: linear-gradient(135deg, #500000 0%, #8b0000 100%);
+      box-shadow: 0 4px 12px rgba(139, 0, 0, 0.15);
+    }
+    .navbar-brand {
+      letter-spacing: 0.5px;
+    }
+    .nav-link-custom {
+      color: rgba(255, 255, 255, 0.85) !important;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .nav-link-custom:hover {
+      color: #ffffff !important;
+    }
+    .tree-node-box {
+      font-weight: 700;
+      color: #2c3e50;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+    }
+
+    footer {
+      background-color: #1a1a24;
+      color: #a0aec0;
+      font-size: 0.85rem;
+    }   
+    .tracking-tight  { letter-spacing: -0.02em; }
+    .tracking-wide   { letter-spacing: 0.05em; }
+    .tracking-wider  { letter-spacing: 0.1em; }
+    .max-w-2xl { max-width: 42rem; }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-3 mb-4">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-uppercase d-flex align-items-center gap-2" href="{% url 'home' %}">
+        Heart Disease Clinical Decision Support System
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="navbar-nav ms-auto gap-2 mt-2 mt-lg-0">
+          <a class="nav-link nav-link-custom px-3" href="{% url 'home' %}">Home</a>
+          <a class="nav-link nav-link-custom px-3" href="{% url 'predict' %}">Run Inference</a>
+          <a class="nav-link nav-link-custom px-3" href="{% url 'compare' %}">Model Topologies</a>
+          <a class="nav-link nav-link-custom px-3" href="{% url 'history' %}">Audit History</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container flex-grow-1 mb-5">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <footer class="text-center py-4 border-top border-dark">
+    <div class="container">
+      <p class="mb-1 fw-bold text-white text-uppercase tracking-wider" style="font-size: 0.75rem; opacity: 0.7;">
+        An Explainable Multi-model Clinical Decision Support System for Heart Disease Prediction using ID3, C4.5 and Random Forest Majority Voting
+      </p>
+      <small class="opacity-50">Final Year Project  Trinity International College </small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
