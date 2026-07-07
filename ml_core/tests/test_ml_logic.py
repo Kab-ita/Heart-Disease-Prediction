@@ -160,7 +160,7 @@ def test_predict_c45_unseen_categorical_falls_back():
         assert "(fallback)" in path[-1]
 
  
- 
+
 def test_performance_report_perfect_predictions():
     report = performance_report([1, 0, 1, 0], [1, 0, 1, 0])
     assert report["accuracy"] == 100.0
@@ -203,7 +203,7 @@ def test_majority_vote_two_to_one():
 
 
 def test_majority_vote_rf_is_deciding_vote():
-    # ID3 and C4.5 disagree; RF's vote breaks the tie.
+   
     assert majority_vote(1, 0, 1)["verdict"] == 1
     assert majority_vote(1, 0, 0)["verdict"] == 0
 

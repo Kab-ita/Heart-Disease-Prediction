@@ -4,13 +4,36 @@
 <div class="mb-4">
   <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider mb-2">Systems Audit</span>
   <h2 class="fw-bold text-dark mb-1">Model Evaluation &amp; Validation Dashboard</h2>
-  <p class="text-muted small">Comparative metrics across all three models: ID3, C4.5, and the Random Forest voter.</p>
+  <p class="text-muted small">Comparative metrics across all three models &mdash; ID3, C4.5, and the Random Forest voter &mdash; plus the best-of-3 majority vote's own performance.</p>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3 p-4 mb-4 text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <span class="text-uppercase small fw-bold opacity-75 d-block mb-1" style="letter-spacing:0.05em;">Best-of-3 Majority Vote &middot; Combined System Accuracy</span>
+      <h2 class="fw-bold m-0">{{ majority_vote_metrics.accuracy }}%</h2>
+    </div>
+    <div class="row g-3 text-center">
+      <div class="col-auto">
+        <div class="fw-bold fs-5">{{ majority_vote_metrics.precision }}%</div>
+        <div class="small opacity-75">Precision</div>
+      </div>
+      <div class="col-auto">
+        <div class="fw-bold fs-5">{{ majority_vote_metrics.recall }}%</div>
+        <div class="small opacity-75">Recall</div>
+      </div>
+      <div class="col-auto">
+        <div class="fw-bold fs-5">{{ majority_vote_metrics.f1_score }}%</div>
+        <div class="small opacity-75">F1-Score</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row g-4 mb-4">
   <div class="col-md-4">
     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-danger border-3">
-      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independently Implemented Paradigm A</small>
+      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independent Paradigm A</small>
       <h4 class="fw-bold text-dark mb-2">ID3 Core Layout</h4>
       <p class="text-secondary small mb-3">A discrete-attribute branching model that splits nodes entirely based on minimizing absolute Entropy.</p>
       <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
@@ -21,7 +44,7 @@
 
   <div class="col-md-4">
     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-primary border-3">
-      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independently Implemented Paradigm B</small>
+      <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Independent Paradigm B</small>
       <h4 class="fw-bold text-dark mb-2">C4.5 Optimization</h4>
       <p class="text-secondary small mb-3">Handles continuous vitals (like blood pressure) by dynamically finding mathematical threshold points using Gain Ratio.</p>
       <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
@@ -34,13 +57,15 @@
     <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100 border-top border-3" style="border-top-color:#198754 !important;">
       <small class="text-uppercase fw-bold text-muted font-monospace d-block mb-1" style="font-size:0.65rem;">Reference Ensemble (scikit-learn)</small>
       <h4 class="fw-bold text-dark mb-2">Random Forest Vote</h4>
-      <p class="text-secondary small mb-3">Not implemented independently, a bagged ensemble of decision trees used as a third, independent vote alongside ID3/C4.5.</p>
+      <p class="text-secondary small mb-3">A Bagged ensemble of decision trees used as a third, independent vote alongside ID3/C4.5.</p>
       <div class="p-2 bg-light rounded font-monospace text-center text-dark fw-bold style-glimpse-box">
         Third Independent Vote
       </div>
     </div>
   </div>
 </div>
+
+ 
 
 {% if agreement_stats %}
 <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4" style="border-left: 4px solid #ffc107;">
@@ -57,7 +82,9 @@
     </div>
   </div>
 </div>
-{% endif %} 
+{% endif %}
+
+<!-- ===================== Line chart comparison ===================== -->
 <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
@@ -74,21 +101,59 @@
   <div style="max-width: 750px; margin: 0 auto;">
     <canvas id="metricsChart"></canvas>
   </div>
-</div> 
+</div>
+
+<!-- ===================== Confusion matrices ===================== -->
+<div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
+  <h5 class="fw-bold text-dark mb-1">Confusion Matrices</h5>
+  <p class="text-muted small mb-3">True/false positives and negatives for each model on the held-out test split.</p>
+  <div class="row g-3">
+    {% for name, m in metrics.items %}
+    <div class="col-md-3 col-sm-6">
+      <div class="p-3 rounded-3 border h-100">
+        <div class="small fw-bold text-uppercase text-muted mb-2" style="font-size:0.68rem; letter-spacing:0.04em;">{{ name }}</div>
+        <table class="table table-sm mb-0 text-center" style="font-size:0.8rem;">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="text-muted fw-normal">Pred. Disease</th>
+              <th class="text-muted fw-normal">Pred. Normal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-muted fw-normal text-start">Actual Disease</td>
+              <td class="fw-bold text-success">{{ m.confusion_matrix.TP }}</td>
+              <td class="fw-bold text-danger">{{ m.confusion_matrix.FN }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted fw-normal text-start">Actual Normal</td>
+              <td class="fw-bold text-danger">{{ m.confusion_matrix.FP }}</td>
+              <td class="fw-bold text-success">{{ m.confusion_matrix.TN }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+  < 
+ 
 <div class="card border-0 shadow-sm rounded-3 p-4 bg-white mb-4">
   <h5 class="fw-bold text-dark mb-1">Exact Figures</h5>
   <p class="text-muted small mb-3">Calculated on a held-out 20% test split.</p>
   <div class="table-responsive">
     <table class="table table-sm align-middle mb-0">
       <thead class="table-light">
-        <tr id="metrics-table-header" class="small text-uppercase text-muted" style="letter-spacing:0.04em; font-size:0.7rem;">
+        <tr class="small text-uppercase text-muted" style="letter-spacing:0.04em; font-size:0.7rem;">
           <th>Metric</th>
+          <th id="metrics-table-header" class="text-end" colspan="10"></th>
         </tr>
       </thead>
       <tbody id="metrics-table-body"></tbody>
     </table>
   </div>
 </div>
+
 <style>
   .tracking-wider { letter-spacing: 0.05em; }
   .style-glimpse-box {
@@ -108,10 +173,16 @@
 {{ chart_data|json_script:"chart-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-  
+  // chart_data is now expected as:
+  // { "labels": ["Accuracy","Precision","Recall","F1 Score"],
+  //   "datasets": [ {"label": "ID3", "values": [...]},
+  //                  {"label": "C4.5", "values": [...]},
+  //                  {"label": "Random Forest", "values": [...]},
+  //                  {"label": "Majority Vote", "values": [...]} ] }
   const chartData = JSON.parse(document.getElementById('chart-data').textContent);
   const palette = ["#8b0000", "#0d6efd", "#198754", "#b8860b"];
- 
+
+  // ---- Legend ----
   const legendEl = document.getElementById('chart-legend');
   chartData.datasets.forEach((ds, i) => {
     const span = document.createElement('span');
@@ -119,7 +190,8 @@
     span.innerHTML = `<span class="legend-dot" style="background:${palette[i % palette.length]};"></span>${ds.label}`;
     legendEl.appendChild(span);
   });
- 
+
+  // ---- Line chart ----
   new Chart(document.getElementById('metricsChart'), {
     type: 'line',
     data: {
@@ -159,37 +231,31 @@
         tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%` } },
       },
     },
-  }); 
-  const headerRow = document.getElementById('metrics-table-header');
-  chartData.datasets.forEach(ds => {
-    const th = document.createElement('th');
-    th.className = "text-end";
-    th.style.minWidth = "110px"; 
-    th.textContent = ds.label;
-    headerRow.appendChild(th);
   });
-  
+ 
+  const headerEl = document.getElementById('metrics-table-header');
+  headerEl.setAttribute('colspan', chartData.datasets.length);
+  headerEl.innerHTML = `<div class="d-flex justify-content-end gap-4">` +
+    chartData.datasets.map(ds => `<span style="min-width:90px; text-align:right;">${ds.label}</span>`).join('') +
+    `</div>`;
+ 
   const tbody = document.getElementById('metrics-table-body');
   chartData.labels.forEach((label, i) => {
-    const row = document.createElement('tr');
- 
-    let rowContent = `<td class="fw-semibold text-dark">${label}</td>`;
- 
     const values = chartData.datasets.map(ds => ds.values[i]);
     const best = Math.max(...values);
-    
-    chartData.datasets.forEach(ds => {
-      const v = ds.values[i];
+
+    const cells = values.map(v => {
       const isBest = Math.abs(v - best) < 0.005;
-      const highlightClass = isBest ? 'fw-bold text-success' : 'text-secondary';
-      
-      rowContent += `
-        <td class="text-end font-monospace ${highlightClass}">
-          ${v.toFixed(2)}%
-        </td>`;
-    });
-    
-    row.innerHTML = rowContent;
+      return `<span style="min-width:90px; text-align:right; display:inline-block;" class="${isBest ? 'fw-bold text-success' : ''} font-monospace">${v.toFixed(2)}%</span>`;
+    }).join('');
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td class="fw-semibold text-dark">${label}</td>
+      <td class="text-end" colspan="${chartData.datasets.length}">
+        <div class="d-flex justify-content-end gap-4">${cells}</div>
+      </td>
+    `;
     tbody.appendChild(row);
   });
 </script>
